@@ -1,11 +1,9 @@
+import streamlit as st
 from openai import OpenAI
-from dotenv import load_dotenv
-import os
 import json
 
-load_dotenv()
-
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+# Get API key from Streamlit Secrets
+API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 client = OpenAI(
     api_key=API_KEY,
