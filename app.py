@@ -14,7 +14,7 @@ st.caption("Transforming vague ideas into structured clarity")
 
 st.divider()
 
-# ---------------- INPUT ----------------
+
 with st.container():
     st.subheader("Requirement Input")
     user_input = st.text_area("Enter your requirement", height=180)
@@ -22,7 +22,7 @@ with st.container():
 
 st.divider()
 
-# ---------------- ANALYSIS ----------------
+
 if analyze:
 
     if user_input.strip() == "":
@@ -42,7 +42,7 @@ if analyze:
                     len(rule_ambiguities)
                 )
 
-                # -------- Metrics --------
+                
                 col1, col2, col3 = st.columns(3)
 
                 col1.metric("AI Score", ai_result["ai_clarity_score"])
@@ -51,13 +51,13 @@ if analyze:
 
                 st.divider()
 
-                # -------- Confidence --------
+                
                 st.subheader("AI Confidence Level")
                 st.progress(ai_result["ai_clarity_score"] / 100)
 
                 st.divider()
 
-                # -------- Radar --------
+                
                 quality_scores = {
                     "Functional": min(len(ai_result["functional_requirements"]) * 10, 100),
                     "Non-Functional": min(len(ai_result["non_functional_requirements"]) * 15, 100),
@@ -71,7 +71,7 @@ if analyze:
 
                 st.divider()
 
-                # -------- Tabs --------
+                
                 tab1, tab2, tab3, tab4 = st.tabs(
                     ["Summary", "Requirements", "Risks", "Improvements"]
                 )
@@ -97,7 +97,7 @@ if analyze:
                 with tab4:
                     st.write(ai_result["improvements"])
 
-                # -------- Downloads --------
+                
                 report_data = {
                     "executive_summary": ai_result["executive_summary"],
                     "functional_requirements": ai_result["functional_requirements"],
