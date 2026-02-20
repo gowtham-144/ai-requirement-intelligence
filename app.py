@@ -1,118 +1,91 @@
 import streamlit as st
-import json
-
 from llm_engine import analyze_requirement
-from ambiguity_detector import detect_ambiguities
-from scoring_engine import calculate_clarity_score
+from scoring_engine import calculate_final_score
 from visualization import radar_chart
-from pdf_exporter import generate_pdf
+from pdf_generator import generate_pdf
+
+import PyPDF2
+from docx import Document
+
 
 st.set_page_config(page_title="AI Requirement Intelligence", layout="wide")
-
-st.title("AI Requirement Intelligence Engine")
-st.caption("Transforming vague ideas into structured clarity")
-
-st.divider()
+st.title("AI Requirement Intelligence")
 
 
-with st.container():
-    st.subheader("Requirement Input")
-    user_input = st.text_area("Enter your requirement", height=180)
-    analyze = st.button("Analyze Requirement")
+uploaded_file = st.file_uploader(
+    "Upload Requirement Document (TXT, PDF, DOCX)",
+    type=["txt", "pdf", "docx"]
+)
 
-st.divider()
+text_input = ""
 
 
-if analyze:
+if uploaded_file is not None:
+    file_type = uploaded_file.name.split(".")[-1].lower()
 
-    if user_input.strip() == "":
-        st.warning("Please enter a requirement.")
+    try:
+        if file_type == "txt":
+            text_input = uploaded_file.read().decode("utf-8")
+
+        elif file_type == "pdf":
+            pdf_reader = PyPDF2.PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text_input += page_text
+
+        elif file_type == "docx":
+            doc = Document(uploaded_file)
+            for para in doc.paragraphs:
+                text_input += para.text + "\n"
+
+    except Exception as e:
+        st.error(f"Error reading file: {e}")
+
+
+manual_text = st.text_area("Or Paste Requirement Text Here")
+
+
+if manual_text.strip():
+    text_input = manual_text
+
+
+if st.button("Analyze Requirement"):
+
+    if not text_input.strip():
+        st.warning("Please upload a document or enter requirement text.")
     else:
+        
+        text_input = text_input[:8000]
+
         with st.spinner("Analyzing requirement..."):
+            result = analyze_requirement(text_input)
 
-            ai_result = analyze_requirement(user_input)
+        if "error" in result:
+            st.error(result["error"])
+        else:
+            final_score = calculate_final_score(result)
 
-            if "error" in ai_result:
-                st.error(ai_result["error"])
-            else:
-                rule_ambiguities = detect_ambiguities(user_input)
+            
+            st.subheader("Final Clarity Score")
+            st.metric("Score", f"{final_score} / 100")
 
-                final_score = calculate_clarity_score(
-                    ai_result["ai_clarity_score"],
-                    len(rule_ambiguities)
+            
+            score_data = {
+                "AI Score": result["ai_clarity_score"],
+                "Final Score": final_score
+            }
+
+            fig = radar_chart(score_data)
+            st.plotly_chart(fig, use_container_width=True)
+
+            
+            pdf_file = generate_pdf(result)
+
+            with open(pdf_file, "rb") as f:
+                st.download_button(
+                    label="Download PDF Report",
+                    data=f,
+                    file_name="requirement_report.pdf",
+                    mime="application/pdf"
                 )
-
-                
-                col1, col2, col3 = st.columns(3)
-
-                col1.metric("AI Score", ai_result["ai_clarity_score"])
-                col2.metric("Final Score", final_score)
-                col3.metric("Ambiguities Found", len(rule_ambiguities))
-
-                st.divider()
-
-                
-                st.subheader("AI Confidence Level")
-                st.progress(ai_result["ai_clarity_score"] / 100)
-
-                st.divider()
-
-                
-                quality_scores = {
-                    "Functional": min(len(ai_result["functional_requirements"]) * 10, 100),
-                    "Non-Functional": min(len(ai_result["non_functional_requirements"]) * 15, 100),
-                    "Ambiguity Risk": max(100 - len(rule_ambiguities) * 10, 0),
-                    "Risk Coverage": min(len(ai_result["technical_risks"]) * 20, 100),
-                    "Requirement Depth": ai_result["ai_clarity_score"]
-                }
-
-                st.subheader("Requirement Quality Radar")
-                st.plotly_chart(radar_chart(quality_scores), use_container_width=True)
-
-                st.divider()
-
-                
-                tab1, tab2, tab3, tab4 = st.tabs(
-                    ["Summary", "Requirements", "Risks", "Improvements"]
-                )
-
-                with tab1:
-                    st.write(ai_result["executive_summary"])
-
-                with tab2:
-                    st.subheader("Functional Requirements")
-                    st.write(ai_result["functional_requirements"])
-
-                    st.subheader("Non-Functional Requirements")
-                    st.write(ai_result["non_functional_requirements"])
-
-                with tab3:
-                    st.subheader("Ambiguities")
-                    st.write(ai_result["ambiguities"])
-                    st.write(rule_ambiguities)
-
-                    st.subheader("Technical Risks")
-                    st.write(ai_result["technical_risks"])
-
-                with tab4:
-                    st.write(ai_result["improvements"])
-
-                
-                report_data = {
-                    "executive_summary": ai_result["executive_summary"],
-                    "functional_requirements": ai_result["functional_requirements"],
-                    "non_functional_requirements": ai_result["non_functional_requirements"],
-                    "ambiguities": ai_result["ambiguities"] + rule_ambiguities,
-                    "technical_risks": ai_result["technical_risks"],
-                    "improvements": ai_result["improvements"],
-                    "final_score": final_score
-                }
-
-                pdf_file = generate_pdf(report_data)
-
-                with open(pdf_file, "rb") as f:
-                    st.download_button(
-                        "Download PDF Report",
-                        f,
-                        "requirement_report.pdf"
-                    )
