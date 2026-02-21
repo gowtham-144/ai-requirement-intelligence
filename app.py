@@ -3,7 +3,6 @@ from llm_engine import analyze_requirement
 from scoring_engine import calculate_clarity_score
 from visualization import radar_chart
 from pdf_exporter import generate_pdf
-
 import PyPDF2
 from docx import Document
 
@@ -70,6 +69,23 @@ if st.button("Analyze Requirement"):
 
             fig = radar_chart(score_data)
             st.plotly_chart(fig, use_container_width=True)
+
+            st.subheader("Executive Summary")
+            st.write(result["executive_summary"])
+
+            sections = [
+                "functional_requirements",
+                "non_functional_requirements",
+                "missing_requirements",
+                "ambiguities",
+                "technical_risks",
+                "improvements"
+            ]
+
+            for section in sections:
+                st.subheader(section.replace("_", " ").title())
+                for item in result.get(section, []):
+                    st.write(f"- {item}")
 
             pdf_file = generate_pdf(result)
 
