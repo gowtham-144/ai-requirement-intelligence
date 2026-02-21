@@ -29,12 +29,14 @@ def generate_pdf(report, filename="requirement_report.pdf"):
     for title, items in sections:
         elements.append(Paragraph(title, styles["Heading2"]))
         elements.append(Spacer(1, 0.1 * inch))
+
         elements.append(
             ListFlowable(
                 [ListItem(Paragraph(i, styles["BodyText"])) for i in items],
                 bulletType='bullet'
             )
         )
+
         elements.append(Spacer(1, 0.3 * inch))
 
     elements.append(Paragraph("Final Clarity Score", styles["Heading2"]))

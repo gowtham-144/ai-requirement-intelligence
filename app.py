@@ -7,10 +7,8 @@ from pdf_generator import generate_pdf
 import PyPDF2
 from docx import Document
 
-
 st.set_page_config(page_title="AI Requirement Intelligence", layout="wide")
 st.title("AI Requirement Intelligence")
-
 
 uploaded_file = st.file_uploader(
     "Upload Requirement Document (TXT, PDF, DOCX)",
@@ -18,7 +16,6 @@ uploaded_file = st.file_uploader(
 )
 
 text_input = ""
-
 
 if uploaded_file is not None:
     file_type = uploaded_file.name.split(".")[-1].lower()
@@ -42,20 +39,16 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"Error reading file: {e}")
 
-
 manual_text = st.text_area("Or Paste Requirement Text Here")
-
 
 if manual_text.strip():
     text_input = manual_text
-
 
 if st.button("Analyze Requirement"):
 
     if not text_input.strip():
         st.warning("Please upload a document or enter requirement text.")
     else:
-        
         text_input = text_input[:8000]
 
         with st.spinner("Analyzing requirement..."):
@@ -65,12 +58,11 @@ if st.button("Analyze Requirement"):
             st.error(result["error"])
         else:
             final_score = calculate_clarity_score(result)
+            result["final_score"] = final_score
 
-            
             st.subheader("Final Clarity Score")
             st.metric("Score", f"{final_score} / 100")
 
-            
             score_data = {
                 "AI Score": result["ai_clarity_score"],
                 "Final Score": final_score
@@ -79,7 +71,6 @@ if st.button("Analyze Requirement"):
             fig = radar_chart(score_data)
             st.plotly_chart(fig, use_container_width=True)
 
-            
             pdf_file = generate_pdf(result)
 
             with open(pdf_file, "rb") as f:

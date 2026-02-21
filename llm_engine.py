@@ -2,7 +2,6 @@ import streamlit as st
 from openai import OpenAI
 import json
 
-# Get API key from Streamlit Secrets
 API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 client = OpenAI(

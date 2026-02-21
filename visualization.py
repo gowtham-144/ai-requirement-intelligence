@@ -5,7 +5,6 @@ def radar_chart(scores):
     categories = list(scores.keys())
     values = list(scores.values())
 
-    # Close the loop
     values += values[:1]
     categories += categories[:1]
 

@@ -1,4 +1,9 @@
-def calculate_clarity_score(ai_score, ambiguity_count):
+def calculate_clarity_score(result):
+
+    ai_score = result["ai_clarity_score"]
+    ambiguity_list = result.get("ambiguities", [])
+
+    ambiguity_count = len(ambiguity_list)
 
     penalty = ambiguity_count * 3
     final_score = ai_score - penalty
