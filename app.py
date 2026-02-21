@@ -1,6 +1,6 @@
 import streamlit as st
 from llm_engine import analyze_requirement
-from scoring_engine import calculate_final_score
+from scoring_engine import calculate_clarity_score
 from visualization import radar_chart
 from pdf_generator import generate_pdf
 
