@@ -64,7 +64,7 @@ if st.button("Analyze Requirement"):
         if "error" in result:
             st.error(result["error"])
         else:
-            final_score = calculate_final_score(result)
+            final_score = calculate_clarity_score(result)
 
             
             st.subheader("Final Clarity Score")
